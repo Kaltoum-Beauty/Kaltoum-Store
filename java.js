@@ -23,6 +23,14 @@ products.unshift({
     rating: 5,
     reviews: 64
 });
+{
+    id: 2,
+    name: "Vitamin B7 Biotin Shampoo",
+    price: 99,
+    img: "biotin.png",
+    category: "hair",
+    description: "شامبو البيوتين B7 الاحترافي بتركيبة Triplex Hair System. يعمل على تقوية بصيلات الشعر، زيادة الكثافة، ومنع التساقط. غني ببروتين القمح وزيت الأرغان والكولاجين. خالي من السلفات والسيليكون والبارابين."
+}
 
 let cart = [];
 
@@ -87,5 +95,6 @@ function checkout() {
     
     window.open(`https://wa.me/212602105141?text=${msg}`);
 }
+
 
 render();
