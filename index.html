@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجر أم كلثوم الشامل - أكادير</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #d4af37;
+            --purple: #4a148c;
+            --teal: #00796b;
+            --light-bg: #fdfcf0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Tajawal', sans-serif; background-color: var(--light-bg); color: #333; }
+
+        header {
+            background: var(--purple); color: white; padding: 15px 5%;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .logo { font-size: 1.8rem; font-weight: 900; color: var(--gold); }
+
+        /* أنيميشن للسلة عند الإضافة */
+        @keyframes shake {
+            0% { transform: rotate(0); }
+            25% { transform: rotate(10deg); }
+            50% { transform: rotate(-10deg); }
+            100% { transform: rotate(0); }
+        }
+        .shake-cart { animation: shake 0.4s ease-in-out; }
+
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), 
+                        url('https://images.unsplash.com/photo-1590001155093-a3c66ab0c3ff?q=80&w=1400&auto=format&fit=crop');
+            background-size: cover; background-position: center; background-attachment: fixed;
+            color: white; text-align: center; padding: 100px 20px;
+        }
+        .hero h1 { font-size: 3rem; color: var(--gold); }
+
+        .categories-nav {
+            background: white; padding: 15px; display: flex; justify-content: center;
+            gap: 10px; flex-wrap: wrap; position: sticky; top: 70px; z-index: 999;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .cat-btn {
+            padding: 8px 20px; border: 2px solid var(--purple); border-radius: 25px;
+            cursor: pointer; font-weight: bold; background: transparent; color: var(--purple);
+        }
+        .cat-btn.active { background: var(--purple); color: white; }
+
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+        
+        .card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); cursor: pointer; transition: 0.3s; }
+        .card:hover { transform: scale(1.02); }
+        .card img { width: 100%; height: 250px; object-fit: cover; }
+        .card-body { padding: 15px; text-align: center; }
+        .card-title { font-weight: 700; color: var(--purple); }
+        .new-price { color: var(--teal); font-weight: 900; font-size: 1.2rem; }
+
+        /* نوافذ Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; overflow-y: auto; }
+        .modal-body { background: white; width: 90%; max-width: 600px; margin: 30px auto; padding: 25px; border-radius: 20px; position: relative; }
+        .close-btn { position: absolute; top: 15px; left: 15px; font-size: 1.5rem; cursor: pointer; color: red; font-weight: bold; }
+        
+        .modal-img { width: 100%; border-radius: 15px; margin-bottom: 15px; }
+        .modal-desc { line-height: 1.6; color: #555; margin: 15px 0; }
+
+        .add-cart-btn { background: var(--purple); color: white; border: none; padding: 12px; font-weight: bold; cursor: pointer; width: 100%; border-radius: 0 0 15px 15px; }
+        .whatsapp-btn { background: #25D366; color: white; display: block; text-align: center; padding: 15px; border-radius: 12px; text-decoration: none; font-weight: bold; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">متجر أم كلثوم ✨</div>
+        <div id="cart-nav" style="cursor:pointer; background: var(--gold); color: black; padding: 10px 20px; border-radius: 50px; font-weight: bold;" onclick="openCart()">🛒 السلة (<span id="count">0</span>)</div>
+    </header>
+
+    <section class="hero">
+        <h1>متجر أم كلثوم الشامل</h1>
+        <p>توصيل مجاني لجميع أحياء أكادير</p>
+    </section>
+
+    <nav class="categories-nav">
+        <button class="cat-btn active" onclick="filterCat('all', this)">الكل</button>
+        <button class="cat-btn" onclick="filterCat('kitchen', this)">أواني</button>
+        <button class="cat-btn" onclick="filterCat('beauty', this)">تجميل</button>
+    </nav>
+
+    <div class="container">
+        <div class="grid" id="product-grid"></div>
+    </div>
+
+    <div id="detailsModal" class="modal">
+        <div class="modal-body">
+            <span class="close-btn" onclick="closeDetails()">✕</span>
+            <img id="m-img" class="modal-img" src="">
+            <h2 id="m-title" style="color:var(--purple)"></h2>
+            <p id="m-desc" class="modal-desc"></p>
+            <h3 id="m-price" style="color:var(--teal)"></h3>
+            <button id="m-buy-btn" class="whatsapp-btn" style="background:var(--purple)">إضافة للسلة 🛒</button>
+        </div>
+    </div>
+
+    <div id="cartModal" class="modal">
+        <div class="modal-body">
+            <span class="close-btn" onclick="closeCart()">✕</span>
+            <h2 style="text-align:center">سلة المشتريات</h2>
+            <div id="cartList" style="margin: 20px 0;"></div>
+            <h3 id="totalPrice" style="text-align:center; color: var(--teal);"></h3>
+            <a href="javascript:void(0)" onclick="sendWhatsApp()" class="whatsapp-btn">إرسال الطلب واتساب 📲</a>
+        </div>
+    </div>
+
+    <script>
+        const products = [
+            { 
+                id: 1, cat: 'kitchen', name: "إبريق شاي أصلي", 
+                shortDesc: "إبريق ممتاز مصنوع من الفولاذ.",
+                longDesc: "هذا الإبريق المغربي الأصيل يتميز بقدرته العالية على تحمل الحرارة وتصميمه التقليدي الذي يزين مائدتك. سعة 1.5 لتر، سهل التنظيف ولا يتغير لونه مع الوقت.",
+                price: 180, img: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=500" 
+            },
+            { 
+                id: 2, cat: 'beauty', name: "مكمل بيوتين", 
+                shortDesc: "لتقوية الشعر والأظافر.",
+                longDesc: "بيوتين 5000 ميكروغرام، يساعد في تحسين صحة الشعر من الجذور ويقوي الأظافر الضعيفة. العلبة تحتوي على 60 كبسولة تكفي لمدة شهرين.",
+                price: 150, img: "biotin.png" 
+            },
+			   { 
+                id: 3, cat: 'beauty', name: "fatima ", 
+                shortDesc: "لتقوية الشعر والأظافر.",
+                longDesc: "بيوتين 5000 ميكروغرام، يساعد في تحسين صحة الشعر من الجذور ويقوي الأظافر الضعيفة. العلبة تحتوي على 60 كبسولة تكفي لمدة شهرين.",
+                price: 150, img: "R.png" 
+            },
+			   { 
+                id: 4, cat: 'beauty', name: "مكمل بيوتين", 
+                shortDesc: "لتقوية الشعر والأظافر.",
+                longDesc: "بيوتين 5000 ميكروغرام، يساعد في تحسين صحة الشعر من الجذور ويقوي الأظافر الضعيفة. العلبة تحتوي على 60 كبسولة تكفي لمدة شهرين.",
+                price: 150, img: "biotin.png" 
+            },
+        ];
+
+        let cart = [];
+
+        function render(filteredCat = 'all') {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = '';
+            const list = filteredCat === 'all' ? products : products.filter(p => p.cat === filteredCat);
+
+            list.forEach(p => {
+                grid.innerHTML += `
+                    <div class="card">
+                        <div onclick="showDetails(${p.id})">
+                            <img src="${p.img}" onerror="this.src='https://via.placeholder.com/300x250?text=No+Image'">
+                            <div class="card-body">
+                                <div class="card-title">${p.name}</div>
+                                <div style="font-size:0.8rem; color:#888; margin:5px 0;">${p.shortDesc}</div>
+                                <div class="new-price">${p.price} DH</div>
+                            </div>
+                        </div>
+                        <button class="add-cart-btn" onclick="addToCart(${p.id})">إضافة سريعة 🛒</button>
+                    </div>
+                `;
+            });
+        }
+
+        function showDetails(id) {
+            const p = products.find(i => i.id === id);
+            document.getElementById('m-img').src = p.img;
+            document.getElementById('m-title').innerText = p.name;
+            document.getElementById('m-desc').innerText = p.longDesc;
+            document.getElementById('m-price').innerText = "السعر: " + p.price + " DH";
+            document.getElementById('m-buy-btn').onclick = function() { addToCart(p.id); closeDetails(); };
+            document.getElementById('detailsModal').style.display = 'block';
+        }
+
+        function closeDetails() { document.getElementById('detailsModal').style.display = 'none'; }
+
+        function addToCart(id) {
+            const p = products.find(item => item.id === id);
+            cart.push(p);
+            
+            // تحديث العدد مع حركة هزّ للسلة
+            const countEl = document.getElementById('count');
+            const cartNav = document.getElementById('cart-nav');
+            countEl.innerText = cart.length;
+            
+            cartNav.classList.remove('shake-cart');
+            void cartNav.offsetWidth; 
+            cartNav.classList.add('shake-cart');
+        }
+
+        function openCart() {
+            const modal = document.getElementById('cartModal');
+            const list = document.getElementById('cartList');
+            modal.style.display = 'block';
+            list.innerHTML = '';
+            let total = 0;
+            cart.forEach(item => {
+                total += item.price;
+                list.innerHTML += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:10px 0;"><span>${item.name}</span><b>${item.price} DH</b></div>`;
+            });
+            document.getElementById('totalPrice').innerText = "المجموع: " + total + " DH";
+        }
+
+        function closeCart() { document.getElementById('cartModal').style.display = 'none'; }
+
+        function sendWhatsApp() {
+            if(cart.length === 0) return;
+            const myNumber = "212602105141";
+            let message = "مرحباً متجر أم كلثوم، أريد طلب:%0A";
+            cart.forEach(item => message += `- ${item.name} (${item.price} DH)%0A`);
+            message += "%0Aالمجموع: " + document.getElementById('totalPrice').innerText;
+            window.open(`https://wa.me/${myNumber}?text=${message}`, '_blank');
+        }
+
+        function filterCat(cat, btn) {
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            render(cat);
+        }
+
+        render();
+    </script>
+</body>
+</html>
